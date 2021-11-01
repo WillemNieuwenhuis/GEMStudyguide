@@ -15,8 +15,10 @@ class FromExcel:
         self.workbook = pd.read_excel(fn, sheet_name=None)  # read all sheets
         self.course = self.workbook['1 Course template']
         allocSheet = self.workbook['2 Time allocation']
+        testplanSheet = self.workbook['3 Test plan']
         self.extractAllocation(allocSheet)
         self.testplan = self.workbook['3 Test plan']
+        self.extractAssessment(testplanSheet)
 
     def extractAllocation(self, sheet) -> None:
         begin = sheet == 'Type of activity'
@@ -39,19 +41,21 @@ class FromExcel:
         row_begin = ix_begin[0][0]
         col_begin = ix_begin[1][0]
 
-        end = sheet == 'Sum of hours for the course'
-        ix_end = np.where(end == True)
-        row_end = ix_end[0][0]
+        # extract the test info and transpose it
+        assess = sheet.iloc[row_begin:row_begin+3, col_begin:].T
+        assess.columns = assess.iloc[0]
+        assess = assess[1:]
+        wgt_col = list(assess.columns)[1]   # select the weight column
+        assess = assess.fillna(0)
+        assess[wgt_col] = assess[wgt_col] * 100
+
+        self.assessment = assess
     
     def getCourseItem(self, item : str) ->str:
         key = self.getKeyname(item)
         it = self.course[self.course['Item'] == key]
         val = it[it.keys()[1]]
         return val.values[0]
-
-    # def getAllocationItem(self, item : str) -> str:
-    #     # simple implementation for now
-    #     return item
 
     def getKeyname(self, key : str) ->str:
         if key in GEMADMINKEYS:
