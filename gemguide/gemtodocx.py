@@ -1,11 +1,16 @@
+import os
 from docx import Document
 from docx.text.paragraph import Paragraph
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 import pandas as pd
 import numpy as np
-import argparse
-import logging
+import comtypes.client
 from gemguide.constants import GEMCONTENTKEYS, GEMADMINKEYS
 from gemguide import fromexcel
+
+
+wdFormatPDF = 17
+
 
 def buildDocument(input : str) -> Document:
     document = Document()
@@ -53,21 +58,50 @@ def buildDocument(input : str) -> Document:
     run = para.add_run(str(total))
     run.bold = True
 
-    # Assessment
+    # Assessment, examiners
     document.add_heading('Assessment')
     table = document.add_table(0, 2)
     cells = table.add_row().cells
     cells[0].text = 'Examiners'
     cells[1].text = excel.getCourseItem('Examiner(s)')
 
+    # Assessment, test plan
+    table = document.add_table(0, 3)
+    head = excel.assessment.columns
+    cells = table.add_row().cells
+    for j, c in enumerate(head):
+        if c:
+            para = cells[j].paragraphs[0]
+            run = para.add_run(str(c))
+            run.bold = True
 
+    for r in excel.assessment.values:
+        cells = table.add_row().cells
+        for j, c in enumerate(r):
+            para = cells[j].paragraphs[0]
+            run = para.add_run(str(c))
+            para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
     return document
 
 
-def convert(inp : str, outp : str):
+def convert2docx(inp : str, outp : str):
     doc = buildDocument(inp)
 
     doc.save(outp)
+
+def convert2pdf(inp : str, outp : str):
+    doc = buildDocument(inp)
+
+    word = comtypes.client.CreateObject('Word.Application')
+    temp = 'E:/Data/studyguide/temp.docx'
+    doc.save(temp)
+
+    docx = word.Documents.Open(temp)
+    docx.SaveAs(outp, FileFormat=wdFormatPDF)
+    docx.Close()
+    word.Quit()
+
+    os.remove(temp)
 
 
