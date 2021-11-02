@@ -1,0 +1,12 @@
+name: exceldoc
+channels:
+  - defaults
+dependencies:
+  - python=3.7
+  - pandas
+  - openpyxl
+  - pip:
+    - lxml==4.6.3
+    - python-docx==0.8.11
+    - tqdm==4.62.3
+prefix: C:\Users\nieuwenhuis\AppData\Local\Continuum\miniconda3\envs\exceldoc
