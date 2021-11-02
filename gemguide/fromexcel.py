@@ -48,7 +48,7 @@ class FromExcel:
         wgt_col = list(assess.columns)[1]   # select the weight column
         assess = assess.fillna(0)
         assess[wgt_col] = assess[wgt_col] * 100
-
+        assess[wgt_col] = pd.to_numeric(assess[wgt_col]).astype(int)
         self.assessment = assess
     
     def getCourseItem(self, item : str) ->str:
